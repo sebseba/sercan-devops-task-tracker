@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevOps Task Tracker</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0f172a;
+        --card: #1e293b;
+        --accent: #38bdf8;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --ok: #22c55e;
+        --warn: #f59e0b;
+      }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(160deg, #0b1220, #111827 40%, #0f172a);
+        color: var(--text);
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 3rem;
+      }
+      h1 {
+        font-size: 1.75rem;
+        margin: 0 0 0.25rem;
+        letter-spacing: -0.02em;
+      }
+      p.lead {
+        margin: 0 0 1.5rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .panel {
+        background: rgba(30, 41, 59, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 1.25rem;
+        backdrop-filter: blur(6px);
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      input[type='text'] {
+        flex: 1 1 180px;
+        padding: 0.55rem 0.65rem;
+        border-radius: 8px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: #0b1220;
+        color: var(--text);
+      }
+      button {
+        padding: 0.55rem 0.9rem;
+        border-radius: 8px;
+        border: none;
+        background: var(--accent);
+        color: #0b1220;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid rgba(56, 189, 248, 0.5);
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.55rem 0.35rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .badge {
+        display: inline-block;
+        padding: 0.2rem 0.45rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 600;
+      }
+      .badge.pending {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--warn);
+      }
+      .badge.in-progress {
+        background: rgba(56, 189, 248, 0.2);
+        color: var(--accent);
+      }
+      .badge.done {
+        background: rgba(34, 197, 94, 0.2);
+        color: var(--ok);
+      }
+      select.status {
+        padding: 0.35rem 0.5rem;
+        border-radius: 6px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: #0b1220;
+        color: var(--text);
+      }
+      .msg {
+        margin-top: 0.65rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .msg.error {
+        color: #f87171;
+      }
+      .empty {
+        color: var(--muted);
+        font-style: italic;
+        padding: 0.5rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>DevOps Task Tracker</h1>
+      <p class="lead">Small demo app for boards, branches, Jenkins, and SonarQube.</p>
+
+      <section class="panel" aria-label="Add task">
+        <div class="row">
+          <input id="title" type="text" placeholder="New task title" maxlength="120" />
+          <button type="button" id="addBtn">Add task</button>
+          <button type="button" class="secondary" id="refreshBtn">Refresh</button>
+        </div>
+        <div id="formMsg" class="msg" role="status"></div>
+      </section>
+
+      <section class="panel" aria-label="Task list">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="listMsg" class="msg" role="status"></div>
+      </section>
+    </main>
+
+    <script>
+      const rowsEl = document.getElementById('rows');
+      const titleEl = document.getElementById('title');
+      const addBtn = document.getElementById('addBtn');
+      const refreshBtn = document.getElementById('refreshBtn');
+      const formMsg = document.getElementById('formMsg');
+      const listMsg = document.getElementById('listMsg');
+
+      function setFormMsg(text, isError) {
+        formMsg.textContent = text || '';
+        formMsg.classList.toggle('error', Boolean(isError));
+      }
+
+      function setListMsg(text, isError) {
+        listMsg.textContent = text || '';
+        listMsg.classList.toggle('error', Boolean(isError));
+      }
+
+      function formatDate(iso) {
+        try {
+          return new Date(iso).toLocaleString();
+        } catch {
+          return iso;
+        }
+      }
+
+      function statusClass(status) {
+        return status === 'in-progress' ? 'in-progress' : status;
+      }
+
+      async function loadTasks() {
+        setListMsg('Loading…');
+        try {
+          const res = await fetch('/api/tasks');
+          if (!res.ok) throw new Error('Failed to load tasks');
+          const data = await res.json();
+          renderTasks(data);
+          setListMsg('');
+        } catch (e) {
+          setListMsg(e.message || 'Could not load tasks', true);
+        }
+      }
+
+      function renderTasks(tasks) {
+        rowsEl.innerHTML = '';
+        if (!tasks.length) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 3;
+          td.className = 'empty';
+          td.textContent = 'No tasks yet. Add one above.';
+          tr.appendChild(td);
+          rowsEl.appendChild(tr);
+          return;
+        }
+        for (const t of tasks) {
+          const tr = document.createElement('tr');
+
+          const tdTitle = document.createElement('td');
+          tdTitle.textContent = t.title;
+
+          const tdStatus = document.createElement('td');
+          const sel = document.createElement('select');
+          sel.className = 'status';
+          sel.setAttribute('aria-label', `Status for ${t.title}`);
+          for (const s of ['pending', 'in-progress', 'done']) {
+            const opt = document.createElement('option');
+            opt.value = s;
+            opt.textContent = s;
+            if (s === t.status) opt.selected = true;
+            sel.appendChild(opt);
+          }
+          sel.addEventListener('change', async () => {
+            setListMsg('Updating…');
+            try {
+              const res = await fetch(`/api/tasks/${encodeURIComponent(t.id)}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: sel.value })
+              });
+              const body = await res.json().catch(() => ({}));
+              if (!res.ok) throw new Error(body.message || 'Update failed');
+              setListMsg('Status updated.');
+              await loadTasks();
+            } catch (e) {
+              setListMsg(e.message || 'Update failed', true);
+              await loadTasks();
+            }
+          });
+
+          const span = document.createElement('span');
+          span.className = `badge ${statusClass(t.status)}`;
+          span.textContent = t.status;
+
+          tdStatus.appendChild(span);
+          tdStatus.appendChild(document.createTextNode(' '));
+          tdStatus.appendChild(sel);
+
+          const tdCreated = document.createElement('td');
+          tdCreated.textContent = formatDate(t.createdAt);
+
+          tr.appendChild(tdTitle);
+          tr.appendChild(tdStatus);
+          tr.appendChild(tdCreated);
+          rowsEl.appendChild(tr);
+        }
+      }
+
+      addBtn.addEventListener('click', async () => {
+        const title = titleEl.value;
+        setFormMsg('');
+        addBtn.disabled = true;
+        try {
+          const res = await fetch('/api/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title })
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(body.message || 'Could not add task');
+          titleEl.value = '';
+          setFormMsg('Task created.');
+          await loadTasks();
+        } catch (e) {
+          setFormMsg(e.message || 'Could not add task', true);
+        } finally {
+          addBtn.disabled = false;
+        }
+      });
+
+      refreshBtn.addEventListener('click', loadTasks);
+
+      loadTasks();
+    </script>
+  </body>
+</html>

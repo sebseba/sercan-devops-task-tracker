@@ -1,0 +1,41 @@
+{
+  "name": "devops-task-tracker",
+  "version": "1.0.0",
+  "description": "A small Express task tracker for DevOps coursework (Jenkins, SonarQube, Azure Boards).",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "jest --runInBand --forceExit",
+    "test:coverage": "jest --runInBand --coverage --forceExit"
+  },
+  "keywords": [
+    "express",
+    "devops",
+    "jenkins",
+    "sonarqube"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  }
+}
