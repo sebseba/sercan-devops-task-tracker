@@ -33,7 +33,7 @@ function createTask(title) {
     return { ok: false, error: 'Task title is required and cannot be empty.', code: 'EMPTY_TITLE' };
   }
   if (titleExists(clean)) {
-    return { ok: false, error: 'A task with this title already exists.', code: 'DUPLICATE_TITLE' };
+    return { ok: false, error: 'A task with this title already exists. Please use a different title.', code: 'DUPLICATE_TITLE' };
   }
   const task = {
     id: nextId(),
