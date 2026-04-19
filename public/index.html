@@ -157,6 +157,7 @@
               <th>Title</th>
               <th>Status</th>
               <th>Created</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="rows"></tbody>
@@ -195,6 +196,19 @@
         return status === 'in-progress' ? 'in-progress' : status;
       }
 
+      async function deleteTask(id) {
+        setListMsg('Deleting…');
+        try {
+          const res = await fetch(`/api/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(body.message || 'Delete failed');
+          setListMsg(body.message || 'Task deleted successfully.');
+          await loadTasks();
+        } catch (e) {
+          setListMsg(e.message || 'Delete failed', true);
+        }
+      }
+
       async function loadTasks() {
         setListMsg('Loading…');
         try {
@@ -213,7 +227,7 @@
         if (!tasks.length) {
           const tr = document.createElement('tr');
           const td = document.createElement('td');
-          td.colSpan = 3;
+          td.colSpan = 4;
           td.className = 'empty';
           td.textContent = 'No tasks yet. Add one above.';
           tr.appendChild(td);
@@ -266,9 +280,20 @@
           const tdCreated = document.createElement('td');
           tdCreated.textContent = formatDate(t.createdAt);
 
+          const tdActions = document.createElement('td');
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'secondary';
+          delBtn.setAttribute('aria-label', `Delete ${t.title}`);
+          delBtn.textContent = 'Delete';
+          delBtn.addEventListener('click', () => deleteTask(t.id));
+
+          tdActions.appendChild(delBtn);
+
           tr.appendChild(tdTitle);
           tr.appendChild(tdStatus);
           tr.appendChild(tdCreated);
+          tr.appendChild(tdActions);
           rowsEl.appendChild(tr);
         }
       }

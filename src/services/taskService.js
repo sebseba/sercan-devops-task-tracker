@@ -61,6 +61,15 @@ function updateTaskStatus(id, status) {
   return { ok: true, task };
 }
 
+function deleteTask(id) {
+  const idx = tasks.findIndex((t) => t.id === String(id));
+  if (idx === -1) {
+    return { ok: false, code: 'NOT_FOUND', error: 'Task not found.' };
+  }
+  const [deletedTask] = tasks.splice(idx, 1);
+  return { ok: true, task: deletedTask };
+}
+
 /**
  * Reset store to seed data (used by tests for isolation).
  */
@@ -72,6 +81,7 @@ module.exports = {
   getAllTasks,
   createTask,
   updateTaskStatus,
+  deleteTask,
   resetTasks,
   ALLOWED_STATUSES
 };

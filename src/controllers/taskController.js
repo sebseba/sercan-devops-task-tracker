@@ -42,8 +42,26 @@ function patchTaskStatus(req, res) {
   return res.json(result.task);
 }
 
+function removeTask(req, res) {
+  const { id } = req.params;
+  const result = taskService.deleteTask(id);
+
+  if (!result.ok) {
+    if (result.code === 'NOT_FOUND') {
+      return res.status(404).json({ message: result.error });
+    }
+    return res.status(400).json({ message: result.error });
+  }
+
+  return res.json({
+    message: 'Task deleted successfully.',
+    task: result.task
+  });
+}
+
 module.exports = {
   listTasks,
   addTask,
-  patchTaskStatus
+  patchTaskStatus,
+  removeTask
 };
