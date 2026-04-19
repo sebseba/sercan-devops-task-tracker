@@ -18,7 +18,10 @@ function addTask(req, res) {
     return res.status(400).json({ message: result.error });
   }
 
-  return res.status(201).json(result.task);
+  return res.status(201).json({
+    message: 'Task successfully created!',
+    task: result.task
+  });
 }
 
 function patchTaskStatus(req, res) {

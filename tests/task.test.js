@@ -24,12 +24,16 @@ describe('devops-task-tracker API', () => {
     const res = await request(app).post('/api/tasks').send({ title });
     expect(res.status).toBe(201);
     expect(res.body).toMatchObject({
-      title,
-      status: 'pending'
+      message: 'Task successfully created!',
+      task: {
+        title,
+        status: 'pending'
+      }
     });
-    expect(res.body).toHaveProperty('id');
-    expect(res.body).toHaveProperty('createdAt');
+    expect(res.body.task).toHaveProperty('id');
+    expect(res.body.task).toHaveProperty('createdAt');
   });
+  
 
   test('POST /api/tasks with empty title fails', async () => {
     const res = await request(app).post('/api/tasks').send({ title: '   ' });
