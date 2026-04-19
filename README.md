@@ -1,4 +1,5 @@
-# devops-task-tracker
+# DevOps final project with CI/CD, Jenkins and Azure Boards
+##devops-task-tracker
 
 A small **Node.js + Express** task tracker built for a DevOps final project. It is intentionally simple so you can demo it live, while the repository layout supports **Azure DevOps Boards**, **Git branching**, **Jenkins pipelines**, and **SonarQube** analysis the way many college rubrics expect.
 
