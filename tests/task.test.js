@@ -58,4 +58,19 @@ describe('devops-task-tracker API', () => {
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('message');
   });
+
+  test('DELETE /api/tasks/:id deletes a task', async () => {
+    const title = `To delete ${Date.now()}`;
+    const createRes = await request(app).post('/api/tasks').send({ title });
+    expect(createRes.status).toBe(201);
+    const taskId = createRes.body.task.id;
+
+    const delRes = await request(app).delete(`/api/tasks/${taskId}`);
+    expect(delRes.status).toBe(200);
+    expect(delRes.body).toMatchObject({
+      message: 'Task deleted successfully.',
+      task: { id: taskId, title }
+    });
+    expect(delRes.body.task).toHaveProperty('createdAt');
+  });
 });
