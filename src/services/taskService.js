@@ -30,7 +30,7 @@ function getAllTasks() {
 function createTask(title) {
   const clean = normalizeTitle(title);
   if (!clean) {
-    return { ok: false, error: 'Title is required and cannot be empty.', code: 'EMPTY_TITLE' };
+    return { ok: false, error: 'Task title is required and cannot be empty.', code: 'EMPTY_TITLE' };
   }
   if (titleExists(clean)) {
     return { ok: false, error: 'A task with this title already exists.', code: 'DUPLICATE_TITLE' };
